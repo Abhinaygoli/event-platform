@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/EventPlatform.API/EventPlatform.API.csproj" />
+  <Project Path="src/EventPlatform.Application/EventPlatform.Application.csproj" />
+  <Project Path="src/EventPlatform.Domain/EventPlatform.Domain.csproj" />
+  <Project Path="src/EventPlatform.Infrastructure/EventPlatform.Infrastructure.csproj" />
+</Solution>
