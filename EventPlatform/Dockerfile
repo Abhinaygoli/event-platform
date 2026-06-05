@@ -3,12 +3,12 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 # Copy solution and project files first (for layer caching)
-COPY *.slnx ./
+COPY EventPlatform.slnx ./
 COPY src/EventPlatform.API/*.csproj ./src/EventPlatform.API/
 COPY src/EventPlatform.Application/*.csproj ./src/EventPlatform.Application/
 COPY src/EventPlatform.Domain/*.csproj ./src/EventPlatform.Domain/
 COPY src/EventPlatform.Infrastructure/*.csproj ./src/EventPlatform.Infrastructure/
-RUN dotnet restore
+RUN dotnet restore EventPlatform.slnx
 
 # Copy all source code and publish
 COPY src/ ./src/
