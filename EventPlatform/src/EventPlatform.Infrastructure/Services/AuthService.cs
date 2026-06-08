@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EventPlatform.Domain.Enums
+namespace EventPlatform.Infrastructure.Services
 {
-    public enum UserRole
+    public class AuthService
     {
-        Admin,
-        Speaker,
-        Attendee
     }
 }

@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace EventPlatform.Domain.Enums
 {
-    public class SessionStatus
+    public enum SessionStatus
     {
+        Scheduled,
+        Live,
+        Completed,
+        Cancelled
     }
 }

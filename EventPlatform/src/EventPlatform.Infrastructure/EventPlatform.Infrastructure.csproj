@@ -16,11 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EventPlatform.Application\EventPlatform.Application.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="NewFolder\" />
+    <ProjectReference Include="..\EventPlatform.Domain\EventPlatform.Domain.csproj" />
   </ItemGroup>
 
 </Project>

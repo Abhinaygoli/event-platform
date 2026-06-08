@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace EventPlatform.Domain.Enums
 {
-    public class NotificationType
+    public enum NotificationType
     {
+        SessionReminder,
+        EventUpdate,
+        General
     }
 }
