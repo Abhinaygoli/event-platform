@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In — EventPlatform</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+</head>
+<body>
+
+    <div class="bg-mesh"></div>
+    <div class="bg-noise"></div>
+
+    <div class="page-content auth-page">
+
+        <!-- Left branding panel -->
+        <div class="auth-left">
+            <div class="auth-left-glow"></div>
+            <div class="auth-left-glow-2"></div>
+
+            <div class="auth-brand">
+                <a href="/" class="auth-brand-logo">
+                    <div class="nav-logo-dot"></div>
+                    EventPlatform
+                </a>
+                <div class="auth-headline">
+                    <h2>Welcome<br /><span>back.</span></h2>
+                    <p>Sign in to access your dashboard, manage sessions, and connect with your conference community.</p>
+                </div>
+            </div>
+
+            <div class="auth-features">
+                <div class="auth-feature-item">
+                    <div class="auth-feature-icon">🔐</div>
+                    <span>Secure JWT authentication with role-based access</span>
+                </div>
+                <div class="auth-feature-item">
+                    <div class="auth-feature-icon">⚡</div>
+                    <span>Real-time session notifications via SignalR</span>
+                </div>
+                <div class="auth-feature-item">
+                    <div class="auth-feature-icon">🤖</div>
+                    <span>AI-powered session recommendations</span>
+                </div>
+                <div class="auth-feature-item">
+                    <div class="auth-feature-icon">📊</div>
+                    <span>Live analytics and attendance tracking</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right form panel -->
+        <div class="auth-right">
+            <div class="auth-form-container">
+
+                <div class="auth-form-header">
+                    <h1>Sign in</h1>
+                    <p>Don't have an account? <a href="register.html">Create one free</a></p>
+                </div>
+
+                <div class="auth-form-card">
+                    <form id="login-form" onsubmit="handleLogin(event)" novalidate>
+
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email address</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">✉</span>
+                                <input type="email"
+                                       id="email"
+                                       class="form-input input-with-icon"
+                                       placeholder="you@example.com"
+                                       autocomplete="email"
+                                       required />
+                            </div>
+                            <span class="form-error" id="email-error"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="password">Password</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">🔑</span>
+                                <input type="password"
+                                       id="password"
+                                       class="form-input input-with-icon"
+                                       placeholder="Enter your password"
+                                       autocomplete="current-password"
+                                       required />
+                                <span class="input-toggle" onclick="togglePassword(this)">👁</span>
+                            </div>
+                            <span class="form-error" id="password-error"></span>
+                        </div>
+
+                        <button type="submit" id="login-btn" class="btn btn-primary btn-submit">
+                            Sign in
+                        </button>
+
+                    </form>
+
+                    <div class="divider">or continue with</div>
+
+                    <div style="display:flex;flex-direction:column;gap:10px">
+                        <a href="register.html?role=Admin" class="btn btn-ghost" style="justify-content:center;font-size:13px">
+                            🧪 Try as Admin (demo)
+                        </a>
+                        <a href="register.html?role=Attendee" class="btn btn-ghost" style="justify-content:center;font-size:13px">
+                            🎟️ Try as Attendee (demo)
+                        </a>
+                    </div>
+                </div>
+
+                <div class="auth-alt">
+                    By signing in you agree to our
+                    <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="js/auth.js"></script>
+    <script>
+    // If already logged in, redirect
+    if (Auth.isLoggedIn()) Auth.redirectByRole();
+    </script>
+</body>
+</html>

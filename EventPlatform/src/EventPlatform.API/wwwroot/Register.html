@@ -1,0 +1,214 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Account — EventPlatform</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+</head>
+<body>
+
+    <div class="bg-mesh"></div>
+    <div class="bg-noise"></div>
+
+    <div class="page-content auth-page">
+
+        <!-- Left branding panel -->
+        <div class="auth-left">
+            <div class="auth-left-glow"></div>
+            <div class="auth-left-glow-2"></div>
+
+            <div class="auth-brand">
+                <a href="/" class="auth-brand-logo">
+                    <div class="nav-logo-dot"></div>
+                    EventPlatform
+                </a>
+                <div class="auth-headline">
+                    <h2>Join the<br /><span>platform.</span></h2>
+                    <p>Create your free account and start managing events, building agendas, and connecting with speakers.</p>
+                </div>
+            </div>
+
+            <div class="auth-features">
+                <div class="auth-feature-item">
+                    <div class="auth-feature-icon">🎯</div>
+                    <span>Choose your role — Admin, Speaker, or Attendee</span>
+                </div>
+                <div class="auth-feature-item">
+                    <div class="auth-feature-icon">🗓️</div>
+                    <span>Build a personalised session agenda instantly</span>
+                </div>
+                <div class="auth-feature-item">
+                    <div class="auth-feature-icon">🤖</div>
+                    <span>Get AI recommendations based on your interests</span>
+                </div>
+                <div class="auth-feature-item">
+                    <div class="auth-feature-icon">🔔</div>
+                    <span>Real-time alerts when your sessions go live</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right form panel -->
+        <div class="auth-right">
+            <div class="auth-form-container">
+
+                <div class="auth-form-header">
+                    <h1>Create account</h1>
+                    <p>Already have one? <a href="login.html">Sign in here</a></p>
+                </div>
+
+                <div class="auth-form-card">
+                    <form id="register-form" onsubmit="handleRegister(event)" novalidate>
+
+                        <!-- Full name -->
+                        <div class="form-group">
+                            <label class="form-label" for="name">Full name</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">👤</span>
+                                <input type="text"
+                                       id="name"
+                                       class="form-input input-with-icon"
+                                       placeholder="Full name"
+                                       autocomplete="name"
+                                       required />
+                            </div>
+                            <span class="form-error" id="name-error"></span>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email address</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">✉</span>
+                                <input type="email"
+                                       id="email"
+                                       class="form-input input-with-icon"
+                                       placeholder="you@example.com"
+                                       autocomplete="email"
+                                       required />
+                            </div>
+                            <span class="form-error" id="email-error"></span>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="form-group">
+                            <label class="form-label" for="password">Password</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">🔑</span>
+                                <input type="password"
+                                       id="password"
+                                       class="form-input input-with-icon"
+                                       placeholder="Min. 6 characters"
+                                       autocomplete="new-password"
+                                       required
+                                       oninput="updateStrength(this.value)" />
+                                <span class="input-toggle" onclick="togglePassword(this)">👁</span>
+                            </div>
+                            <div class="password-strength">
+                                <div class="strength-bar">
+                                    <div class="strength-fill" id="strength-fill"></div>
+                                </div>
+                                <div class="strength-text" id="strength-text"></div>
+                            </div>
+                            <span class="form-error" id="password-error"></span>
+                        </div>
+
+                        <!-- Role selector -->
+                        <div class="form-group">
+                            <label class="form-label">I am joining as</label>
+                            <div class="role-selector">
+                                <input type="radio" name="role" id="role-attendee" value="Attendee" class="role-option" checked />
+                                <label for="role-attendee" class="role-label">
+                                    <span class="role-emoji">🎟️</span>
+                                    <span class="role-name">Attendee</span>
+                                </label>
+
+                                <input type="radio" name="role" id="role-speaker" value="Speaker" class="role-option" />
+                                <label for="role-speaker" class="role-label">
+                                    <span class="role-emoji">🎤</span>
+                                    <span class="role-name">Speaker</span>
+                                </label>
+
+                                <input type="radio" name="role" id="role-admin" value="Admin" class="role-option" />
+                                <label for="role-admin" class="role-label">
+                                    <span class="role-emoji">⚙️</span>
+                                    <span class="role-name">Admin</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="register-btn" class="btn btn-primary btn-submit">
+                            Create account
+                        </button>
+
+                    </form>
+                </div>
+
+                <div class="auth-alt">
+                    By creating an account you agree to our
+                    <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="js/auth.js"></script>
+    <script>
+    // If already logged in redirect
+    if (Auth.isLoggedIn()) Auth.redirectByRole();
+
+    // Pre-select role from URL param e.g. register.html?role=Admin
+    const urlRole = new URLSearchParams(window.location.search).get('role');
+    if (urlRole) {
+      const radio = document.querySelector(`input[value="${urlRole}"]`);
+      if (radio) radio.checked = true;
+    }
+
+    // Password strength meter
+    function updateStrength(val) {
+      const fill = document.getElementById('strength-fill');
+      const text = document.getElementById('strength-text');
+      let score = 0;
+      if (val.length >= 6)  score++;
+      if (val.length >= 10) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+
+      const levels = [
+        { w: '20%',  bg: 'var(--error)',   label: 'Very weak'  },
+        { w: '40%',  bg: 'var(--warning)', label: 'Weak'       },
+        { w: '60%',  bg: 'var(--warning)', label: 'Fair'       },
+        { w: '80%',  bg: 'var(--success)', label: 'Strong'     },
+        { w: '100%', bg: 'var(--accent)',  label: 'Very strong'},
+      ];
+      const level = levels[Math.max(0, score - 1)] || levels[0];
+      fill.style.width      = val ? level.w  : '0%';
+      fill.style.background = level.bg;
+      text.textContent      = val ? level.label : '';
+      text.style.color      = level.bg;
+    }
+
+    // Read selected role for handleRegister
+    const origHandleRegister = handleRegister;
+    window.handleRegister = async function(e) {
+      const selected = document.querySelector('input[name="role"]:checked');
+      if (selected) document.getElementById('role') && (document.getElementById('role').value = selected.value);
+      // inject role into form before calling
+      const roleInput = document.getElementById('role') || (() => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden'; inp.id = 'role'; inp.value = selected?.value || 'Attendee';
+        document.getElementById('register-form').appendChild(inp);
+        return inp;
+      })();
+      roleInput.value = selected?.value || 'Attendee';
+      await origHandleRegister(e);
+    };
+    </script>
+</body>
+</html>

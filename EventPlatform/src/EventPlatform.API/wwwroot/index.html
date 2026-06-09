@@ -1,10 +1,329 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title></title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EventPlatform — Conference & Event Management</title>
+    <meta name="description" content="The modern platform for managing conferences, sessions, and attendee experiences." />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/index.css" />
 </head>
 <body>
-    <P>Document</P>
+
+    <!-- Background effects -->
+    <div class="bg-mesh"></div>
+    <div class="bg-noise"></div>
+
+    <div class="page-content">
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <a href="/" class="nav-logo">
+                <div class="nav-logo-dot"></div>
+                EventPlatform
+            </a>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#how" class="nav-link">How it works</a>
+                <a href="/swagger" class="nav-link" target="_blank">API Docs</a>
+                <a href="login.html" class="nav-link">Sign in</a>
+                <a href="register.html" class="nav-cta">Get started</a>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-inner">
+                <div class="hero-badge">
+                    <span class="badge badge-accent">
+                        <span class="badge-dot"></span>
+                        Now live — AI-powered recommendations
+                    </span>
+                </div>
+
+                <h1 class="hero-title">
+                    The conference platform
+                    <span class="hero-title-gradient">built for impact</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    Manage events end-to-end. Empower speakers. Delight attendees.<br />
+                    From session scheduling to real-time notifications — all in one place.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="register.html" class="btn btn-primary btn-lg">
+                        Start for free
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                    </a>
+                    <a href="/swagger" class="btn btn-outline btn-lg" target="_blank">
+                        View API docs
+                    </a>
+                </div>
+
+                <div class="hero-status">
+                    <span class="status-dot"></span>
+                    API status: <span id="health-status" class="text-muted">checking...</span>
+                </div>
+            </div>
+
+            <!-- Hero visual -->
+            <div class="hero-visual">
+                <div class="dashboard-preview">
+                    <div class="preview-bar">
+                        <div class="preview-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span class="preview-url">event-platform-api.onrender.com</span>
+                    </div>
+                    <div class="preview-body">
+                        <div class="preview-sidebar">
+                            <div class="preview-nav-item active">Dashboard</div>
+                            <div class="preview-nav-item">Sessions</div>
+                            <div class="preview-nav-item">Speakers</div>
+                            <div class="preview-nav-item">Analytics</div>
+                        </div>
+                        <div class="preview-main">
+                            <div class="preview-stat-row">
+                                <div class="preview-stat">
+                                    <div class="preview-stat-val accent">1,240</div>
+                                    <div class="preview-stat-label">Attendees</div>
+                                </div>
+                                <div class="preview-stat">
+                                    <div class="preview-stat-val purple">48</div>
+                                    <div class="preview-stat-label">Sessions</div>
+                                </div>
+                                <div class="preview-stat">
+                                    <div class="preview-stat-val pink">12</div>
+                                    <div class="preview-stat-label">Speakers</div>
+                                </div>
+                            </div>
+                            <div class="preview-sessions">
+                                <div class="preview-session-item">
+                                    <div class="preview-session-dot live"></div>
+                                    <div class="preview-session-info">
+                                        <div class="preview-session-title">Building with .NET 8</div>
+                                        <div class="preview-session-meta">Hall A · 120 attending</div>
+                                    </div>
+                                    <span class="preview-live-badge">LIVE</span>
+                                </div>
+                                <div class="preview-session-item">
+                                    <div class="preview-session-dot scheduled"></div>
+                                    <div class="preview-session-info">
+                                        <div class="preview-session-title">Azure Architecture Patterns</div>
+                                        <div class="preview-session-meta">Hall B · 2:30 PM</div>
+                                    </div>
+                                </div>
+                                <div class="preview-session-item">
+                                    <div class="preview-session-dot scheduled"></div>
+                                    <div class="preview-session-info">
+                                        <div class="preview-session-title">AI-Powered Applications</div>
+                                        <div class="preview-session-meta">Hall C · 4:00 PM</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Floating cards -->
+                <div class="float-card float-card-1">
+                    <div class="float-card-icon">🎯</div>
+                    <div>
+                        <div class="float-card-title">AI Recommendations</div>
+                        <div class="float-card-sub">Personalised for you</div>
+                    </div>
+                </div>
+                <div class="float-card float-card-2">
+                    <div class="float-card-icon">🔔</div>
+                    <div>
+                        <div class="float-card-title">Session starting</div>
+                        <div class="float-card-sub">Hall A · 2 mins</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats strip -->
+        <div class="stats-strip">
+            <div class="stat-item">
+                <div class="stat-num">3</div>
+                <div class="stat-label">Role-based dashboards</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-num">25+</div>
+                <div class="stat-label">REST API endpoints</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-num">Real-time</div>
+                <div class="stat-label">SignalR notifications</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-num">AI</div>
+                <div class="stat-label">Session recommendations</div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <section class="features" id="features">
+            <div class="section-header">
+                <span class="badge badge-purple">Features</span>
+                <h2 class="section-title">Everything you need,<br /><em>nothing you don't</em></h2>
+                <p class="section-sub">Built on ASP.NET Core 8 with clean architecture — every feature is purposeful.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card card card-glow">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Role-Based Access</h3>
+                    <p>Admin, Speaker, Attendee — each role gets a tailored dashboard and scoped API access via JWT.</p>
+                    <div class="feature-tags">
+                        <span class="badge badge-accent">JWT</span>
+                        <span class="badge badge-accent">RBAC</span>
+                    </div>
+                </div>
+
+                <div class="feature-card card card-glow feature-card-tall">
+                    <div class="feature-icon">📅</div>
+                    <h3>Session Management</h3>
+                    <p>Full lifecycle: schedule, assign speakers, track capacity, mark live or completed.</p>
+                    <div class="feature-mini-preview">
+                        <div class="mini-session scheduled">Scheduled</div>
+                        <div class="mini-session live-s">Live</div>
+                        <div class="mini-session completed">Completed</div>
+                    </div>
+                    <div class="feature-tags">
+                        <span class="badge badge-purple">EF Core</span>
+                        <span class="badge badge-purple">PostgreSQL</span>
+                    </div>
+                </div>
+
+                <div class="feature-card card card-glow">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Real-time Notifications</h3>
+                    <p>SignalR pushes live updates when sessions go live — no page refresh needed.</p>
+                    <div class="feature-tags">
+                        <span class="badge badge-pink">SignalR</span>
+                    </div>
+                </div>
+
+                <div class="feature-card card card-glow">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Recommendations</h3>
+                    <p>GPT-4o-mini analyses your agenda to suggest sessions you'll actually care about.</p>
+                    <div class="feature-tags">
+                        <span class="badge badge-accent">OpenAI</span>
+                    </div>
+                </div>
+
+                <div class="feature-card card card-glow">
+                    <div class="feature-icon">📊</div>
+                    <h3>Analytics Dashboard</h3>
+                    <p>Session fill rates, registration trends, attendance heatmaps — all from SQL aggregation views.</p>
+                    <div class="feature-tags">
+                        <span class="badge badge-purple">SQL Views</span>
+                        <span class="badge badge-purple">Chart.js</span>
+                    </div>
+                </div>
+
+                <div class="feature-card card card-glow">
+                    <div class="feature-icon">🗓️</div>
+                    <h3>Personal Agenda</h3>
+                    <p>Attendees build personalised schedules and favourite sessions with one click.</p>
+                    <div class="feature-tags">
+                        <span class="badge badge-pink">REST API</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How it works -->
+        <section class="how-section" id="how">
+            <div class="section-header">
+                <span class="badge badge-accent">How it works</span>
+                <h2 class="section-title">Three roles, one platform</h2>
+            </div>
+
+            <div class="roles-grid">
+                <div class="role-card card">
+                    <div class="role-num">01</div>
+                    <div class="role-icon admin-icon">⚙️</div>
+                    <h3>Admin</h3>
+                    <ul class="role-list">
+                        <li>Create and manage events</li>
+                        <li>Schedule sessions &amp; assign speakers</li>
+                        <li>Monitor analytics dashboard</li>
+                        <li>Send notifications to attendees</li>
+                    </ul>
+                </div>
+                <div class="role-card card">
+                    <div class="role-num">02</div>
+                    <div class="role-icon speaker-icon">🎤</div>
+                    <h3>Speaker</h3>
+                    <ul class="role-list">
+                        <li>Manage speaker profile &amp; bio</li>
+                        <li>View assigned sessions</li>
+                        <li>See attendee count per session</li>
+                        <li>Update session details</li>
+                    </ul>
+                </div>
+                <div class="role-card card">
+                    <div class="role-num">03</div>
+                    <div class="role-icon attendee-icon">🎟️</div>
+                    <h3>Attendee</h3>
+                    <ul class="role-list">
+                        <li>Browse and register for events</li>
+                        <li>Build a personal agenda</li>
+                        <li>Favourite sessions</li>
+                        <li>Get AI-powered suggestions</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="cta-section">
+            <div class="cta-card card">
+                <div class="cta-glow"></div>
+                <h2 class="cta-title">Ready to explore?</h2>
+                <p class="cta-sub">Register in seconds.</p>
+                <div class="cta-actions">
+                    <a href="register.html" class="btn btn-primary btn-lg">Create free account</a>
+                    <a href="/swagger" class="btn btn-ghost btn-lg" target="_blank">Explore the API</a>
+                </div>
+                <div class="cta-roles">
+                    <span>Sign up as</span>
+                    <a href="register.html?role=Attendee" class="badge badge-success">Attendee</a>
+                    <a href="register.html?role=Speaker" class="badge badge-purple">Speaker</a>
+                    <a href="register.html?role=Admin" class="badge badge-accent">Admin</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-inner">
+                <a href="/" class="nav-logo">
+                    <div class="nav-logo-dot"></div>
+                    EventPlatform
+                </a>
+                <div class="footer-links">
+                    <a href="/swagger" target="_blank">API Docs</a>
+                    <a href="login.html">Login</a>
+                    <a href="register.html">Register</a>
+                </div>
+                <div class="footer-stack">
+                    Built with ASP.NET Core 8 · PostgreSQL · SignalR · OpenAI
+                </div>
+            </div>
+        </footer>
+
+    </div><!-- end page-content -->
+    <!-- Toast container -->
+    <div id="toast-container"></div>
+
+    <script src="js/auth.js"></script>
 </body>
 </html>
