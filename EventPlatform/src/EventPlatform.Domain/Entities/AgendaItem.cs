@@ -13,6 +13,7 @@ namespace EventPlatform.Domain.Entities
         public Guid SessionId { get; set; }
         public DateTime AddedAt { get; set; } = DateTime.UtcNow;
 
+        public bool IsDeleted { get; set; } = false;
         // Navigation
         public User User { get; set; } = null!;
         public Session Session { get; set; } = null!;

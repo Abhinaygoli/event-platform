@@ -29,13 +29,11 @@ namespace EventPlatform.Infrastructure.Services
         }
 
         //Register
-        public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
+        public async Task<(AuthResponseDto response, string refreshToken)> RegisterAsync(RegisterDto dto)
         {
-            // Check duplicate email
             if (await _db.Users.AnyAsync(u => u.Email == dto.Email.ToLower()))
                 throw new InvalidOperationException("Email already registered.");
 
-            // Parse role safely
             if (!Enum.TryParse<UserRole>(dto.Role, true, out var role))
                 role = UserRole.Attendee;
 
@@ -54,7 +52,7 @@ namespace EventPlatform.Infrastructure.Services
         }
 
         //Login 
-        public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
+        public async Task<(AuthResponseDto response, string refreshToken)> LoginAsync(LoginDto dto)
         {
             var user = await _db.Users
                 .FirstOrDefaultAsync(u => u.Email == dto.Email.ToLower())
@@ -66,20 +64,56 @@ namespace EventPlatform.Infrastructure.Services
             return await GenerateTokensAsync(user);
         }
 
-        // ── Refresh Token ─────────────────────────────────────────
-        public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
+        // ── Refresh with rotation + reuse detection ───────────────
+        public async Task<(AuthResponseDto response, string newRefreshToken)> RefreshTokenAsync(
+            string refreshToken)
         {
+            // Look for a user with this exact token that is still valid
             var user = await _db.Users
                 .FirstOrDefaultAsync(u =>
                     u.RefreshToken == refreshToken &&
-                    u.RefreshTokenExpiry > DateTime.UtcNow)
-                ?? throw new UnauthorizedAccessException("Invalid or expired refresh token.");
+                    u.RefreshTokenExpiry > DateTime.UtcNow);
 
+            if (user == null)
+            {
+                // Token not found as valid — check if it exists but expired
+                // This indicates possible token reuse/theft scenario
+                var suspectedUser = await _db.Users
+                    .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+                if (suspectedUser != null)
+                {
+                    // Attacker may have used a stolen token after it expired.
+                    // Revoke the entire session to protect the legitimate user.
+                    suspectedUser.RefreshToken = null;
+                    suspectedUser.RefreshTokenExpiry = null;
+                    await _db.SaveChangesAsync();
+                }
+
+                throw new UnauthorizedAccessException("Invalid or expired refresh token.");
+            }
+
+            // Token is valid — rotate it immediately
+            // Old token is overwritten, so it can never be used again
             return await GenerateTokensAsync(user);
         }
 
-        // ── Private: Generate JWT + Refresh Token ─────────────────
-        private async Task<AuthResponseDto> GenerateTokensAsync(User user)
+        // ── Revoke on logout ──────────────────────────────────────
+        public async Task RevokeRefreshTokenAsync(string refreshToken)
+        {
+            var user = await _db.Users
+                .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+            if (user == null) return; // already revoked or invalid — safe no-op
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiry = null;
+            await _db.SaveChangesAsync();
+        }
+
+        // ── Core token generation (used by all 3 flows) ───────────
+        private async Task<(AuthResponseDto response, string refreshToken)> GenerateTokensAsync(
+            User user)
         {
             var jwtSettings = _config.GetSection("JwtSettings");
             var secretKey = jwtSettings["Secret"]!;
@@ -93,16 +127,16 @@ namespace EventPlatform.Infrastructure.Services
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub,   user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(ClaimTypes.Name,               user.Name),
-                new Claim(ClaimTypes.Role,               user.Role.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString())
-            };
+            new Claim(JwtRegisteredClaimNames.Sub,   user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(ClaimTypes.NameIdentifier,     user.Id.ToString()),
+            new Claim(ClaimTypes.Name,               user.Name),
+            new Claim(ClaimTypes.Role,               user.Role.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString())
+        };
 
             var expiry = DateTime.UtcNow.AddMinutes(expiryMin);
-
-            var token = new JwtSecurityToken(
+            var jwtToken = new JwtSecurityToken(
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
@@ -110,23 +144,25 @@ namespace EventPlatform.Infrastructure.Services
                 signingCredentials: creds
             );
 
-            var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+            var accessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
             var refreshToken = GenerateRefreshToken();
 
-            // Save refresh token to DB
+            // Rotation: overwrite old refresh token in DB with new one
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(refreshExpiryDays);
             await _db.SaveChangesAsync();
 
-            return new AuthResponseDto
+            // Response DTO — refresh token NOT included here
+            var response = new AuthResponseDto
             {
                 AccessToken = accessToken,
-                RefreshToken = refreshToken,
                 Name = user.Name,
                 Email = user.Email,
                 Role = user.Role.ToString(),
                 ExpiresAt = expiry
             };
+
+            return (response, refreshToken);
         }
 
         private static string GenerateRefreshToken()

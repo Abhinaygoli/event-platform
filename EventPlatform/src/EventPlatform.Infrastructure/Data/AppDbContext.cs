@@ -27,6 +27,22 @@ namespace EventPlatform.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Soft Delete Global Filters
+            modelBuilder.Entity<Event>()
+               .HasQueryFilter(e => !e.IsDeleted);
+
+            modelBuilder.Entity<Session>()
+                .HasQueryFilter(s => !s.IsDeleted);
+
+            modelBuilder.Entity<Registration>()
+                .HasQueryFilter(r => !r.IsDeleted);
+
+            modelBuilder.Entity<AgendaItem>()
+                .HasQueryFilter(a => !a.IsDeleted);
+
+            modelBuilder.Entity<Favorite>()
+                .HasQueryFilter(f => !f.IsDeleted);
+
             //User
             modelBuilder.Entity<User>(e =>
             {

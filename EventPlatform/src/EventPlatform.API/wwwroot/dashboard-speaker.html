@@ -1,0 +1,270 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Speaker Dashboard — EventPlatform</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="bg-noise"></div>
+
+    <div class="page-content dashboard">
+
+        <aside class="sidebar">
+            <a href="/" class="sidebar-logo"><div class="nav-logo-dot"></div>EventPlatform</a>
+
+            <div class="sidebar-section">My Space</div>
+            <a class="sidebar-link active" onclick="showSection('profile')">
+                <span class="sidebar-icon">👤</span> My Profile
+            </a>
+            <a class="sidebar-link" onclick="showSection('sessions')">
+                <span class="sidebar-icon">🎙</span> My Sessions
+            </a>
+
+            <div class="sidebar-section">Explore</div>
+            <a href="events.html" class="sidebar-link">
+                <span class="sidebar-icon">📅</span> All Events
+            </a>
+
+            <div class="sidebar-bottom">
+                <div class="sidebar-user">
+                    <div class="avatar" id="spk-avatar">S</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="spk-name">Speaker</div>
+                        <div class="sidebar-user-role">Speaker</div>
+                    </div>
+                </div>
+                <a class="sidebar-link" onclick="Auth.logout()">
+                    <span class="sidebar-icon">🚪</span> Logout
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+
+            <!-- Profile Section -->
+            <section id="section-profile">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title">Speaker Profile</div>
+                        <div class="page-sub">How attendees see you</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="openModal('profile-modal')" id="profile-action-btn">Create Profile</button>
+                </div>
+
+                <div id="profile-display" class="card" style="padding:32px;max-width:600px;">
+                    <div class="loading-spinner"></div>
+                </div>
+            </section>
+
+            <!-- Sessions Section -->
+            <section id="section-sessions" class="hidden">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title">My Sessions</div>
+                        <div class="page-sub">Sessions assigned to you</div>
+                    </div>
+                </div>
+                <!--tabs-->
+                <div class="speaker-session-tabs">
+                    <button class="speaker-session-tab active" data-tab="live">
+                        Live
+                    </button>
+
+                    <button class="speaker-session-tab" data-tab="upcoming">
+                        Upcoming
+                    </button>
+                    <button class="speaker-session-tab" data-tab="past">
+                        Past
+                    </button>
+                    <button class="speaker-session-tab" data-tab="cancelled">
+                        Cancelled
+                    </button>
+                </div>
+                <div id="speaker-sessions-list" class="sessions-list">
+                    <div class="loading-spinner"></div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Create/Edit Profile Modal -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="profile-modal-title">Create Speaker Profile</div>
+                <button class="modal-close" onclick="closeModal('profile-modal')">×</button>
+            </div>
+            <form class="modal-form" onsubmit="handleSaveProfile(event)">
+                <div class="form-group">
+                    <label class="form-label">Bio</label>
+                    <textarea id="sp-bio" class="form-input" rows="3" placeholder="Tell attendees about yourself..."></textarea>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-group">
+                        <label class="form-label">Company</label>
+                        <input id="sp-company" class="form-input" placeholder="e.g. Microsoft" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Designation</label>
+                        <input id="sp-designation" class="form-input" placeholder="e.g. Senior Engineer" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Photo URL</label>
+                    <input id="sp-photo" class="form-input" placeholder="https://..." />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">LinkedIn URL</label>
+                    <input id="sp-linkedin" class="form-input" placeholder="https://linkedin.com/in/..." />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('profile-modal')">Cancel</button>
+                    <button type="submit" id="save-profile-btn" class="btn btn-primary">Save Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="js/auth.js"></script>
+    <script src="js/sessions.js"></script>
+    <script src="js/events.js"></script>
+    <script>
+  let speakerProfile = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    //Auth.requireAuth();
+    const ok = await requireAuthWithRefresh();  // ← replaces Auth.requireAuth()
+    if (!ok) return;
+    if (Auth.getRole() !== 'Speaker') { Auth.redirectByRole(); return; }
+
+    document.getElementById('spk-name').textContent   = Auth.getName();
+    document.getElementById('spk-avatar').textContent = Auth.getName()?.charAt(0)?.toUpperCase() || 'S';
+
+    await loadSpeakerProfile();
+  });
+
+  async function loadSpeakerProfile() {
+    const display = document.getElementById('profile-display');
+    try {
+      speakerProfile = await apiFetch('/api/speakers/me');
+      document.getElementById('profile-action-btn').textContent = 'Edit Profile';
+
+      display.innerHTML = `
+        <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap">
+          ${speakerProfile.photoUrl
+            ? `<img src="${speakerProfile.photoUrl}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--border)"/>`
+            : `<div class="avatar" style="width:80px;height:80px;font-size:28px">${speakerProfile.name.charAt(0)}</div>`}
+          <div style="flex:1">
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:700">${speakerProfile.name}</div>
+            ${speakerProfile.designation ? `<div style="color:var(--accent);font-size:14px">${speakerProfile.designation}</div>` : ''}
+            ${speakerProfile.company ? `<div style="color:var(--text-secondary);font-size:13px">${speakerProfile.company}</div>` : ''}
+            ${speakerProfile.bio ? `<p style="margin-top:12px;font-size:14px;color:var(--text-secondary);line-height:1.6">${speakerProfile.bio}</p>` : ''}
+            ${speakerProfile.linkedInUrl ? `<a href="${speakerProfile.linkedInUrl}" target="_blank" class="btn btn-ghost btn-sm" style="margin-top:12px">LinkedIn →</a>` : ''}
+            <div style="margin-top:16px">
+              <span class="badge badge-accent">🎙 ${speakerProfile.sessionCount} sessions</span>
+            </div>
+          </div>
+        </div>`;
+
+      // Pre-fill modal for editing
+      document.getElementById('sp-bio').value         = speakerProfile.bio || '';
+      document.getElementById('sp-company').value     = speakerProfile.company || '';
+      document.getElementById('sp-designation').value = speakerProfile.designation || '';
+      document.getElementById('sp-photo').value       = speakerProfile.photoUrl || '';
+      document.getElementById('sp-linkedin').value    = speakerProfile.linkedInUrl || '';
+      document.getElementById('profile-modal-title').textContent = 'Edit Profile';
+
+    } catch {
+      // No profile yet
+      display.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">👤</div>
+          <h3>No profile yet</h3>
+          <p>Create your speaker profile so attendees can discover you.</p>
+          <button class="btn btn-primary" style="margin-top:16px" onclick="openModal('profile-modal')">Create Profile</button>
+        </div>`;
+    }
+  }
+
+  async function handleSaveProfile(e) {
+    e.preventDefault();
+    const btn = document.getElementById('save-profile-btn');
+    btn.classList.add('btn-loading'); btn.disabled = true;
+
+    const dto = {
+      bio:         document.getElementById('sp-bio').value.trim(),
+      company:     document.getElementById('sp-company').value.trim(),
+      designation: document.getElementById('sp-designation').value.trim(),
+      photoUrl:    document.getElementById('sp-photo').value.trim() || null,
+      linkedInUrl: document.getElementById('sp-linkedin').value.trim() || null
+    };
+
+    try {
+      if (speakerProfile) {
+        await apiFetch('/api/speakers/me', { method: 'PUT', body: JSON.stringify(dto) });
+        showToast('Profile updated!');
+      } else {
+        await apiFetch('/api/speakers', { method: 'POST', body: JSON.stringify(dto) });
+        showToast('Profile created!');
+      }
+      closeModal('profile-modal');
+      await loadSpeakerProfile();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.classList.remove('btn-loading'); btn.disabled = false;
+    }
+  }
+
+  async function loadMySessions(status) {
+    if (!speakerProfile) { await loadSpeakerProfile(); }
+    const container = document.getElementById('speaker-sessions-list');
+    container.innerHTML = `<div class="loading-spinner"></div>`;
+    try {
+      // Get all events then filter sessions by speaker
+      // const events = await apiFetch('/api/events?page=1&pageSize=50');
+      // let allSessions = [];
+      // for (const ev of events.items) {
+      //   const data = await apiFetch(`/api/sessions?eventId=${ev.id}&pageSize=50`);
+      //   const mine = data.items.filter(s => s.speakerId === speakerProfile?.id);
+      //   allSessions = [...allSessions, ...mine];
+        // }
+      const data = await apiFetch(`/api/sessions/my-sessions?page=1&pageSize=20&status=${status}`);
+      if (!data.items.length) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">🎙</div><h3>No sessions assigned yet</h3></div>`;
+        return;
+      }
+        renderSessions(data.items, container);
+        renderPagination(data,'sessions-pagination',(p) => loadMySessions(status, p));
+    } catch (err) {
+      container.innerHTML = `<div class="error-state">${err.message}</div>`;
+    }
+  }
+
+        // tab click
+        document.querySelectorAll(".speaker-session-tab").forEach(tab => {
+            tab.addEventListener("click", function () {
+                document.querySelectorAll(".speaker-session-tab")
+                    .forEach(t => t.classList.remove("active"));
+                this.classList.add("active");
+                loadMySessions(this.dataset.tab)
+            });
+        });
+  function showSection(name) {
+    ['profile','sessions'].forEach(s => {
+      document.getElementById(`section-${s}`).classList.toggle('hidden', s !== name);
+    });
+      document.querySelectorAll('.sidebar-link').forEach((el, i) => {
+          el.classList.toggle('active', i === ['profile', 'sessions'].indexOf(name));
+      });
+    if (name === 'sessions') loadMySessions("live");
+  }
+    </script>
+</body>
+</html>

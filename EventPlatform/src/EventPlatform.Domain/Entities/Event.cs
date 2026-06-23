@@ -18,6 +18,7 @@ namespace EventPlatform.Domain.Entities
         public Guid CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public bool IsDeleted { get; set; } = false;
         // Navigation
         public ICollection<Session> Sessions { get; set; } = new List<Session>();
         public ICollection<Registration> Registrations { get; set; } = new List<Registration>();

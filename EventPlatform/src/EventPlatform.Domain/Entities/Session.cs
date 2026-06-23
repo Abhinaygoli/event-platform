@@ -22,6 +22,8 @@ namespace EventPlatform.Domain.Entities
         public int MaxCapacity { get; set; } = 100;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public bool IsDeleted { get; set; } = false;
+
         // Navigation
         public Event Event { get; set; } = null!;
         public Speaker? Speaker { get; set; }

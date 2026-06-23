@@ -1,0 +1,231 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Dashboard — EventPlatform</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="bg-noise"></div>
+
+    <div class="page-content dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="/" class="sidebar-logo"><div class="nav-logo-dot"></div>EventPlatform</a>
+
+            <div class="sidebar-section">Explore</div>
+            <a class="sidebar-link" href="events.html">
+                <span class="sidebar-icon">📅</span> Browse Events
+            </a>
+            <a class="sidebar-link" href="speakers.html">
+                <span class="sidebar-icon">🎤</span> Speakers
+            </a>
+
+            <div class="sidebar-section" id="sidebar-section">My Space</div>
+            <a class="sidebar-link active" onclick="showSection('agenda')">
+                <span class="sidebar-icon">📋</span> My Agenda
+            </a>
+            <a class="sidebar-link" onclick="showSection('favorites')">
+                <span class="sidebar-icon">❤️</span> Favorites
+            </a>
+            <a class="sidebar-link" onclick="showSection('registrations')">
+                <span class="sidebar-icon">🎟️</span> My Events
+            </a>
+
+            <div class="sidebar-bottom">
+                <div class="sidebar-user">
+                    <div class="avatar" id="att-avatar">A</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="att-name">Attendee</div>
+                        <div class="sidebar-user-role">Attendee</div>
+                    </div>
+                </div>
+                <a class="sidebar-link" onclick="Auth.logout()">
+                    <span class="sidebar-icon">🚪</span> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Welcome + stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-icon">📋</div>
+                    <div class="stat-card-label">Sessions in Agenda</div>
+                    <div class="stat-card-value accent" id="stat-agenda">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon">❤️</div>
+                    <div class="stat-card-label">Favorites</div>
+                    <div class="stat-card-value purple" id="stat-favorites">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon">🎟️</div>
+                    <div class="stat-card-label">Events Registered</div>
+                    <div class="stat-card-value pink" id="stat-registrations">—</div>
+                </div>
+            </div>
+
+            <!-- Agenda section -->
+            <section id="section-agenda">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title">My Agenda</div>
+                        <div class="page-sub">Your personalised session schedule</div>
+                    </div>
+                    <a href="events.html" class="btn btn-outline">Browse Events</a>
+                </div>
+                <div id="agenda-list"></div>
+            </section>
+
+            <!-- Favorites section -->
+            <section id="section-favorites" class="hidden">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title">Favorites</div>
+                        <div class="page-sub">Sessions you've saved</div>
+                    </div>
+                </div>
+                <div id="favorites-list"></div>
+            </section>
+
+            <!-- My registered events -->
+            <section id="section-registrations" class="hidden">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title">My Events</div>
+                        <div class="page-sub">Events you've registered for</div>
+                    </div>
+                </div>
+                <!-- Tabs -->
+                <div class="event-tabs">
+                    <button class="event-tab active" data-tab="live">
+                        Live
+                    </button>
+
+                    <button class="event-tab" data-tab="upcoming">
+                        Upcoming
+                    </button>
+
+                    <button class="event-tab" data-tab="past">
+                        Past Events
+                    </button>
+                </div>
+                <div id="my-events-grid" class="events-grid"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="js/auth.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/sessions.js"></script>
+    <script src="js/agenda.js"></script>
+    <script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    //Auth.requireAuth();
+    const ok = await requireAuthWithRefresh();  // ← replaces Auth.requireAuth()
+    if (!ok) return;
+    if (Auth.getRole() !== 'Attendee') { Auth.redirectByRole(); return; }
+
+    document.getElementById('att-name').textContent   = Auth.getName();
+    document.getElementById('att-avatar').textContent = Auth.getName()?.charAt(0)?.toUpperCase() || 'A';
+
+    // Load agenda and favorites, update stat counts
+    const [agendaItems, favorites] = await Promise.all([
+      apiFetch('/api/agenda').catch(() => []),
+      apiFetch('/api/favorites').catch(() => [])
+    ]);
+    document.getElementById('stat-agenda').textContent     = agendaItems.length;
+    document.getElementById('stat-favorites').textContent  = favorites.length;
+
+    // Load registered events count
+    //const events = await apiFetch('/api/events?page=1&pageSize=50&status=live').catch(() => ({ items: [] }));
+    //const myEvents = events.items.filter(e => e.isRegistered);
+      // document.getElementById('stat-registrations').textContent = events.length;
+    // const categorizedEvents = {
+    //       live: myEvents.filter(
+    //           e => getEventCategory(e) === "live"
+    //       ),
+    //       upcoming: myEvents.filter(
+    //           e => getEventCategory(e) === "upcoming"
+    //       ),
+    //       past: myEvents.filter(
+    //           e => getEventCategory(e) === "past"
+    //       )
+    //   };
+    // Render registered events section
+      function renderMyEvents(status) {
+          const events = await apiFetch(`/api/events?page=1&pageSize=50&status=${status}`).catch(() => ({ items: [] }));
+          document.getElementById('stat-registrations').textContent = events.length;
+        const grid = document.getElementById('my-events-grid');
+        //const list = categorizedEvents[type];
+        if (!events.length) {
+            grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🎟️</div><h3>No ${status} events</h3>${status !== "past" ? `<a href="events.html" class="btn btn-primary" style="margin-top:16px">Browse Events</a>` : ""}</div>`;
+        } else {
+            grid.innerHTML = events.map(ev => `
+              <div class="event-card card card-glow" onclick="window.location.href='event-detail.html?id=${ev.id}'">
+                ${ev.bannerUrl ? `<img src="${ev.bannerUrl}" class="event-banner"/>` : `<div class="event-banner-placeholder"></div>`}
+                <div class="event-card-body">
+                  <div class="event-meta">
+                    <span class="badge badge-accent">${formatDate(ev.startDate)}</span>
+                    ${status === "past" ? `<span class="badge badge-secondary">Completed</span>` : `<span class="badge badge-success">Registered ✓</span>`}
+                  </div>
+                  <h3 class="event-title">${ev.title}</h3>
+                  <div class="event-stats"><span>📋 ${ev.sessionCount} sessions</span></div>
+                </div>
+              </div>`).join('');
+          }
+      }
+
+      // default tab
+      renderMyEvents("live");
+      // tab click
+      document.querySelectorAll(".event-tab").forEach(tab => {
+          tab.addEventListener("click", function () {
+              document.querySelectorAll(".event-tab")
+                  .forEach(t => t.classList.remove("active"));
+              this.classList.add("active");
+              renderMyEvents(this.dataset.tab);
+          });
+      });
+    // Load agenda section by default
+    loadMyAgenda();
+
+  });
+
+  function showSection(name) {
+    ['agenda','favorites','registrations'].forEach(s => {
+      document.getElementById(`section-${s}`).classList.toggle('hidden', s !== name);
+    });
+      // Select only links after "My Space" section
+      const mySpaceLinks = [];
+
+      let element = document.getElementById('sidebar-section').nextElementSibling;
+
+      while (element && element.classList.contains('sidebar-link')) {
+          mySpaceLinks.push(element);
+          element = element.nextElementSibling;
+      }
+
+      mySpaceLinks.forEach((el, i) => {
+          el.classList.toggle(
+              'active',
+              i === ['agenda', 'favorites', 'registrations'].indexOf(name)
+          );
+      });
+
+    if (name === 'favorites' && document.getElementById('favorites-list').children.length === 0) {
+      loadMyFavorites();
+    }
+  }
+    </script>
+</body>
+</html>

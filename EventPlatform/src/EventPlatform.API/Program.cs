@@ -1,12 +1,14 @@
-using System.Text;
+using EventPlatform.API.Middleware;
 using EventPlatform.Application.Interfaces;
 using EventPlatform.Infrastructure.Data;
 using EventPlatform.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +51,13 @@ builder.Services.AddAuthorization();
 
 //4. Register Application Services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<ISpeakerService, SpeakerService>();
+builder.Services.AddScoped<IAgendaService, AgendaService>();
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+// builder.Services.AddScoped<INotificationService, NotificationService>();
+// builder.Services.AddHttpClient<IAIRecommendationService, OpenAIService>();
 
 //5. Controllers
 builder.Services.AddControllers();
@@ -95,9 +104,17 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader());
+        policy.WithOrigins(
+                "http://localhost:5000",
+                "http://localhost:7000",
+                "https://localhost:5001",
+                "https://localhost:7001",
+                "https://localhost:7290",
+                "https://event-platform-api-p117.onrender.com" // ← your Render URL
+            )
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials()); // ← required for cookies to be sent cross-origin
 });
 
 //8. SignalR
@@ -121,6 +138,14 @@ using (var scope = app.Services.CreateScope())
 }
 
 //Middleware pipeline
+//middleware can catch exceptions thrown during a request, but only for the part of the pipeline that comes after it.
+//it will catch exceptions thrown by:
+//controllers
+//services
+//repository code
+//EF Core calls
+//anything executed after await _next(context)
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseSerilogRequestLogging(); // logs every HTTP request
 
 app.UseSwagger();
@@ -135,7 +160,7 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
+//app.MapHub<NotificationHub>("/hubs/notifications");
 //Health Check endpoint
 // Keeps Render alive via UptimeRobot ping
 app.MapGet("/health", () => Results.Ok(new

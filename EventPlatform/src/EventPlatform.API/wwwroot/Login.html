@@ -122,8 +122,33 @@
     <div id="toast-container"></div>
     <script src="js/auth.js"></script>
     <script>
-    // If already logged in, redirect
-    if (Auth.isLoggedIn()) Auth.redirectByRole();
+        // If already logged in, redirect
+        document.addEventListener('DOMContentLoaded', async () => {
+            // If already logged in with a VALID (or refreshable) token,
+            // skip the login page and go straight to dashboard
+            if (Auth.isLoggedIn()) {
+                if (!isTokenExpired()) {
+                    Auth.redirectByRole();  // token still valid — go to dashboard
+                    return;
+                }
+                // Token expired — try silent refresh
+                try {
+                    const res = await fetch('/api/auth/refresh', {
+                        method: 'POST', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        Auth.setTokens(data);
+                        Auth.redirectByRole(); // refreshed successfully — go to dashboard
+                        return;
+                    }
+                } catch { }
+                // Refresh failed — stay on login page, clear stale data
+                Auth.clearLocal();
+            }
+            // Not logged in or refresh failed — show the login/register form normally
+        });
     </script>
 </body>
 </html>

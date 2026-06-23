@@ -4,7 +4,7 @@
    Shared across ALL pages
    ============================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+/*@import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700;800&family=Segoe+UI:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');*/
 
 /* ── CSS Variables ─────────────────────────────────────────── */
 :root {
@@ -28,12 +28,30 @@
     --radius-md: 12px;
     --radius-lg: 20px;
     --radius-xl: 32px;
-    --font-display: 'Syne', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
+    --font-display: 'Segoe UI', sans-serif;
+    --font-body: 'Segoe UI', sans-serif;
     --shadow-glow: 0 0 40px rgba(110,231,247,0.08);
     --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
 }
 
+/*Scrool bars*/
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #0078d4;
+    border-radius: 15px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #4a5568;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: #0087EE;
+}
 /* ── Reset ─────────────────────────────────────────────────── */
 *, *::before, *::after {
     box-sizing: border-box;
@@ -139,7 +157,7 @@ body {
 
 .nav-logo {
     font-family: var(--font-display);
-    font-size: 20px;
+    font-size: 30px;
     font-weight: 800;
     color: var(--text-primary);
     text-decoration: none;
@@ -150,8 +168,8 @@ body {
 }
 
 .nav-logo-dot {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: var(--accent);
     box-shadow: 0 0 12px var(--accent);
@@ -366,13 +384,9 @@ body {
 .form-error {
     font-size: 12px;
     color: var(--error);
-    margin-top: 4px;
-    display: none;
+    display: block;
+    height:15px;
 }
-
-    .form-error.show {
-        display: block;
-    }
 
 .input-wrapper {
     position: relative;

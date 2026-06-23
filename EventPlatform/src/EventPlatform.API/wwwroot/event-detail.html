@@ -1,0 +1,271 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Event Detail — EventPlatform</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="bg-noise"></div>
+
+    <div class="page-content">
+        <nav class="nav">
+            <a href="/" class="nav-logo"><div class="nav-logo-dot"></div>EventPlatform</a>
+            <div class="nav-links">
+                <!--<a href="events.html" class="nav-link">← Back to Events</a>-->
+                <span id="nav-auth-area"></span>
+            </div>
+        </nav>
+
+        <div style="max-width:1100px;margin:0 auto;padding:40px 32px;">
+
+            <!-- Event detail header injected here -->
+            <div id="event-detail"><div class="loading-spinner"></div></div>
+
+            <!-- Sessions section -->
+            <div style="margin-top:48px;">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title" style="font-size:22px">Sessions</div>
+                        <div class="page-sub">Browse all sessions for this event</div>
+                    </div>
+                    <div id="admin-session-btn" class="hidden">
+                        <button class="btn btn-primary" onclick="openModal('session-modal')">+ Add Session</button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="session-tabs">
+                    <button class="session-tab active" data-tab="live">Live</button>
+                    <button class="session-tab" data-tab="upcoming">Upcoming</button>
+                    <button class="session-tab" data-tab="past">Past</button>
+                    <button class="session-tab" data-tab="cancelled">Cancelled</button>
+                </div>
+
+                <div id="sessions-list" class="sessions-list"></div>
+                <div id="sessions-pagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Session Modal (Admin only) -->
+    <div class="modal-overlay" id="session-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add Session</div>
+                <button class="modal-close" onclick="closeModal('session-modal')">×</button>
+            </div>
+            <form class="modal-form" onsubmit="handleCreateSession(event)">
+                <div class="form-group">
+                    <label class="form-label">Session Title *</label>
+                    <input id="s-title" class="form-input" placeholder="e.g. Building APIs with .NET 8" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="s-description" class="form-input" rows="2" placeholder="What will attendees learn?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Speaker</label>
+                    <select id="s-speaker" class="form-input">
+                        <option value="">No speaker assigned</option>
+                    </select>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-group">
+                        <label class="form-label">Start Time *</label>
+                        <input id="s-start" type="datetime-local" class="form-input" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Time *</label>
+                        <input id="s-end" type="datetime-local" class="form-input" required />
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-group">
+                        <label class="form-label">Room</label>
+                        <input id="s-room" class="form-input" placeholder="e.g. Hall A" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Capacity</label>
+                        <input id="s-capacity" type="number" class="form-input" value="100" min="1" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tags <span class="text-muted">(comma-separated)</span></label>
+                    <input id="s-tags" class="form-input" placeholder="dotnet, azure, api" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('session-modal')">Cancel</button>
+                    <button type="submit" id="create-session-btn" class="btn btn-primary">Add Session</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Session Modal (Admin only) -->
+    <div class="modal-overlay" id="edit-session-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Edit Session</div>
+                <button class="modal-close" onclick="closeModal('edit-session-modal')">×</button>
+            </div>
+            <form class="modal-form" onsubmit="handleEditSession(event)">
+
+                <!-- Hidden field to hold session ID -->
+                <input type="hidden" id="edit-session-id" />
+
+                <div class="form-group">
+                    <label class="form-label">Session Title *</label>
+                    <input id="edit-s-title" class="form-input"
+                           placeholder="e.g. Building APIs with .NET 8" required />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="edit-s-description" class="form-input" rows="2"
+                              placeholder="What will attendees learn?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Speaker</label>
+                    <select id="edit-s-speaker" class="form-input">
+                        <option value="">No speaker assigned</option>
+                        <!-- populated by loadSpeakersDropdown('edit-s-speaker') -->
+                    </select>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-group">
+                        <label class="form-label">Start Time *</label>
+                        <input id="edit-s-start" type="datetime-local" class="form-input" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Time *</label>
+                        <input id="edit-s-end" type="datetime-local" class="form-input" required />
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-group">
+                        <label class="form-label">Room</label>
+                        <input id="edit-s-room" class="form-input" placeholder="e.g. Hall A" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Capacity</label>
+                        <input id="edit-s-capacity" type="number" class="form-input"
+                               value="100" min="1" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Tags
+                        <span class="text-muted" style="font-weight:400">(comma-separated)</span>
+                    </label>
+                    <input id="edit-s-tags" class="form-input" placeholder="dotnet, azure, api" />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost"
+                            onclick="closeModal('edit-session-modal')">
+                        Cancel
+                    </button>
+                    <button type="submit" id="edit-session-btn" class="btn btn-primary">
+                        Save Changes
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+<!--Edit event modal-->
+    <div class="modal-overlay" id="edit-event-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Edit Event</div>
+                <button class="modal-close" onclick="closeModal('edit-event-modal')">×</button>
+            </div>
+            <form class="modal-form" onsubmit="handleEditEvent(event)">
+
+                <!-- Hidden field to hold event ID -->
+                <input type="hidden" id="edit-ev-id" />
+
+                <div class="form-group">
+                    <label class="form-label">Event Title *</label>
+                    <input id="edit-ev-title" class="form-input"
+                           placeholder="e.g. .NET Conf 2025" required />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="edit-ev-description" class="form-input" rows="3"
+                              placeholder="What is this event about?"></textarea>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-group">
+                        <label class="form-label">Start Date *</label>
+                        <input id="edit-ev-start" type="datetime-local" class="form-input" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Date *</label>
+                        <input id="edit-ev-end" type="datetime-local" class="form-input" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input id="edit-ev-location" class="form-input"
+                           placeholder="e.g. Bengaluru, India" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Banner Image URL</label>
+                    <input id="edit-ev-banner" class="form-input" placeholder="https://..." />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost"
+                            onclick="closeModal('edit-event-modal')">
+                        Cancel
+                    </button>
+                    <button type="submit" id="edit-event-btn" class="btn btn-primary">
+                        Save Changes
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+
+    <div id="toast-container"></div>
+    <script src="js/auth.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/sessions.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // if (Auth.getRole() === 'Admin') {
+            //   document.getElementById('admin-session-btn').classList.remove('hidden');
+            // }
+            const area = document.getElementById('nav-auth-area');
+            if (Auth.isLoggedIn()) {
+                area.innerHTML = `<a href="${getDashboardLink()}" class="nav-link">Dashboard</a>
+                    <button class="nav-cta" onclick="Auth.logout()">Logout</button>`;
+            } else {
+                area.innerHTML = `<a href="login.html" class="nav-cta">Sign In</a>`;
+            }
+        });
+        function getDashboardLink() {
+            const r = Auth.getRole();
+            if (r === 'Admin') return 'dashboard-admin.html';
+            if (r === 'Speaker') return 'dashboard-speaker.html';
+            return 'dashboard-attendee.html';
+        }
+    </script>
+</body>
+</html>

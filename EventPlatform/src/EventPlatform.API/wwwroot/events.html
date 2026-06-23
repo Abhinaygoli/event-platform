@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Events — EventPlatform</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="bg-noise"></div>
+
+    <div class="page-content">
+        <nav class="nav">
+            <a href="" class="nav-logo"><div class="nav-logo-dot"></div>EventPlatform</a>
+            <div class="nav-links">
+                <a href="events.html" class="nav-link" style="color:var(--accent)">Events</a>
+                <a href="speakers.html" class="nav-link">Speakers</a>
+                <span id="nav-auth-area"></span>
+            </div>
+        </nav>
+
+        <div style="max-width:1200px;margin:0 auto;padding:40px 32px;">
+
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Upcoming Events</div>
+                    <div class="page-sub">Browse and register for conferences</div>
+                </div>
+                <div id="admin-create-btn" class="hidden">
+                    <button class="btn btn-primary" onclick="openModal('event-modal')">+ Create Event</button>
+                </div>
+            </div>
+
+            <div id="events-grid" class="events-grid"></div>
+            <div id="events-pagination"></div>
+        </div>
+    </div>
+
+    <!-- Create Event Modal (Admin only) -->
+    <div class="modal-overlay" id="event-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Create New Event</div>
+                <button class="modal-close" onclick="closeModal('event-modal')">×</button>
+            </div>
+            <form class="modal-form" onsubmit="handleCreateEvent(event)" id="create-event-form">
+                <div class="form-group">
+                    <label class="form-label">Event Title *</label>
+                    <input id="ev-title" class="form-input" placeholder="e.g. .NET Conf 2025" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="ev-description" class="form-input" rows="3" placeholder="What is this event about?"></textarea>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-group">
+                        <label class="form-label">Start Date *</label>
+                        <input id="ev-start" type="datetime-local" class="form-input" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Date *</label>
+                        <input id="ev-end" type="datetime-local" class="form-input" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input id="ev-location" class="form-input" placeholder="e.g. Bengaluru, India" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Banner Image URL</label>
+                    <input id="ev-banner" class="form-input" placeholder="https://..." />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('event-modal')">Cancel</button>
+                    <button type="submit" id="create-event-btn" class="btn btn-primary">Create Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!--Edit event modal-->
+    <div class="modal-overlay" id="edit-event-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Edit Event</div>
+                <button class="modal-close" onclick="closeModal('edit-event-modal')">×</button>
+            </div>
+            <form class="modal-form" onsubmit="handleEditEvent(event)">
+
+                <!-- Hidden field to hold event ID -->
+                <input type="hidden" id="edit-ev-id" />
+
+                <div class="form-group">
+                    <label class="form-label">Event Title *</label>
+                    <input id="edit-ev-title" class="form-input"
+                           placeholder="e.g. .NET Conf 2025" required />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="edit-ev-description" class="form-input" rows="3"
+                              placeholder="What is this event about?"></textarea>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-group">
+                        <label class="form-label">Start Date *</label>
+                        <input id="edit-ev-start" type="datetime-local" class="form-input" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Date *</label>
+                        <input id="edit-ev-end" type="datetime-local" class="form-input" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input id="edit-ev-location" class="form-input"
+                           placeholder="e.g. Bengaluru, India" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Banner Image URL</label>
+                    <input id="edit-ev-banner" class="form-input" placeholder="https://..." />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost"
+                            onclick="closeModal('edit-event-modal')">
+                        Cancel
+                    </button>
+                    <button type="submit" id="edit-event-btn" class="btn btn-primary">
+                        Save Changes
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+
+    <div id="toast-container"></div>
+    <script src="js/auth.js"></script>
+    <script src="js/events.js"></script>
+    <script>
+        // Show create button for Admin
+        document.addEventListener('DOMContentLoaded', () => {
+            if (Auth.getRole() === 'Admin') {
+                document.getElementById('admin-create-btn').classList.remove('hidden');
+            }
+            // Nav auth area
+            const area = document.getElementById('nav-auth-area');
+            if (Auth.isLoggedIn()) {
+                area.innerHTML = `
+                <a href="${getDashboardLink()}" class="nav-link">Dashboard</a>
+                <button class="nav-cta" onclick="Auth.logout()">Logout</button>`;
+            } else {
+                area.innerHTML = `<a href="login.html" class="nav-cta">Sign In</a>`;
+            }
+        });
+        function getDashboardLink() {
+            const r = Auth.getRole();
+            if (r === 'Admin') return 'dashboard-admin.html';
+            if (r === 'Speaker') return 'dashboard-speaker.html';
+            return 'dashboard-attendee.html';
+        }
+    </script>
+</body>
+</html>
